@@ -3,8 +3,8 @@ package networkserver.Threads;
 import android.os.Parcel;
 import android.os.Parcelable;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
@@ -28,7 +28,7 @@ public abstract class ServerDaemonThread extends Thread{
 
     private Socket socket;
     private ServerDaemonWriteoutThread out;
-    private ObjectInputStream in;
+    private InputStream in;
     private boolean stopOperation = false;
 
     public int playerID;
@@ -53,7 +53,7 @@ public abstract class ServerDaemonThread extends Thread{
     {
         socket = acceptedSocket;
         out = new ServerDaemonWriteoutThread(acceptedSocket);
-        in = new ObjectInputStream(socket.getInputStream());        
+        in = socket.getInputStream();        
         out.start();
     }
 

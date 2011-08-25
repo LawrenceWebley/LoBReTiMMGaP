@@ -5,10 +5,11 @@
 
 package networkserver.Threads;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import networkTransferObjects.ClientPeer;
 import networkTransferObjects.NetworkMessage;
 import networkTransferObjects.PlayerRegistrationMessage;
-import networkserver.Peer2Peer.ClientPeer;
+
 
 /**
  * @date 2011/08/11
@@ -28,8 +29,8 @@ public class CustomDaemonThread extends ServerDaemonThread
     }
 
     @Override
-    protected Vector<ClientPeer> getPeerList(int playerId, String playerName) {
-        return new Vector<ClientPeer>();
+    protected ArrayList<ClientPeer> getPeerList(int playerId, String playerName) {
+        return new ArrayList<ClientPeer>();
     }
 
 }

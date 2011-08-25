@@ -3,7 +3,6 @@ package com.Lobretimgap.NetworkClient.Threads;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.io.ObjectInputStream;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -14,20 +13,25 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 
-import org.apache.http.util.ByteArrayBuffer;
-
 import networkTransferObjects.ClientPeer;
 import networkTransferObjects.NetworkMessage;
 import networkTransferObjects.PlayerRegistrationMessage;
-
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
 import com.Lobretimgap.NetworkClient.NetworkVariables;
+import com.Lobretimgap.NetworkClient.EventListeners.ConnectionEstablishedListener;
+import com.Lobretimgap.NetworkClient.EventListeners.ConnectionLostListener;
+import com.Lobretimgap.NetworkClient.EventListeners.GamestateReceivedListener;
+import com.Lobretimgap.NetworkClient.EventListeners.LatencyUpdateListener;
+import com.Lobretimgap.NetworkClient.EventListeners.NetworkEventListener;
+import com.Lobretimgap.NetworkClient.EventListeners.PartialGamestateReceivedListener;
+import com.Lobretimgap.NetworkClient.EventListeners.RequestReceivedListener;
+import com.Lobretimgap.NetworkClient.EventListeners.UnknownMessageTypeReceivedListener;
+import com.Lobretimgap.NetworkClient.EventListeners.UpdateReceivedListener;
+import com.Lobretimgap.NetworkClient.Events.NetworkEvent;
 import com.Lobretimgap.NetworkClient.Utility.EventListenerList;
-import com.Lobretimgap.NetworkClient.EventListeners.*;
-import com.Lobretimgap.NetworkClient.Events.*;
 
 public abstract class CoreNetworkThread extends Thread 
 {
