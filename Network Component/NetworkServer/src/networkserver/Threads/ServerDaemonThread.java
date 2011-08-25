@@ -1,10 +1,15 @@
 package networkserver.Threads;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import javax.swing.event.EventListenerList;
 import networkTransferObjects.ClientPeer;
@@ -12,6 +17,7 @@ import networkTransferObjects.NetworkMessage;
 import networkTransferObjects.PlayerRegistrationMessage;
 import networkserver.EventListeners.*;
 import networkserver.Events.NetworkEvent;
+import networkserver.ServerCustomisation;
 import networkserver.ServerVariables;
 
 /**
@@ -166,8 +172,17 @@ public abstract class ServerDaemonThread extends Thread{
         {
             try
             {
-                Object data = in.readObject();                
-                processNetworkMessage(data);
+                ByteBuffer data = ByteBuffer.allocate(ServerCustomisation.InputBufferSize);
+            	ReadableByteChannel wrappedChannel = Channels.newChannel(in);
+            	wrappedChannel.read(data);
+
+            	Parcel inParcel = Parcel.obtain();
+            	inParcel.unmarshall(data.array(), 0, data.position());
+            	data.rewind();
+
+            	Object message = inParcel.readValue(getContextClassLoader());
+
+                processNetworkMessage(message);
             }
             catch(InterruptedIOException e)
             {
@@ -181,10 +196,6 @@ public abstract class ServerDaemonThread extends Thread{
                 this.shutdownThread();                
                 break;
             }
-            catch(ClassNotFoundException e)
-            {
-                System.err.println("Unrecognised class object received from client - ignoring");
-            } 
         }
     }
 
@@ -265,7 +276,7 @@ public abstract class ServerDaemonThread extends Thread{
     /*
      * Writes a given object to the outputstream
      */
-    private void writeOut(Object object) throws BufferOverflowException
+    private <T extends Parcelable> void writeOut(T object) throws BufferOverflowException
     {
         //Later perhaps we can more gracefully deal with this. Perhaps add wait
         //a little while and then try again?

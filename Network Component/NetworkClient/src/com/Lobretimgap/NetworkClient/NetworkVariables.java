@@ -11,6 +11,8 @@ public class NetworkVariables {
 	
 	//Replace CoreNetworkThread.class with a concrete implementation of that class.
 	public static final Class<CoreNetworkThread> coreNetworkThreadClass = CoreNetworkThread.class;
+	//64 kilobytes of input buffer. Should be enough for most objects.
+	public static final int InputBufferSize = 64 * 1024;
 	
 	/**
 	 * Uses the class type above to create a concrete instance of the CoreNetworkThread 

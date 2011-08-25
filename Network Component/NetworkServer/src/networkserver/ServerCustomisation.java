@@ -17,6 +17,8 @@ public class ServerCustomisation <T extends ServerDaemonThread>
     public static final int threadWriteOutBufferSize = 16;
     public static final int initialNetworkMessageMapSize = 8;
     public static final int port = 10282;
+    //32 kb
+    public static int InputBufferSize = 64 * 1024;
     
     //Stores an the type of class, so we can instantiate them
     private Class<T> ServerDaemonThreadType;
