@@ -8,8 +8,10 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.BufferOverflowException;
+import java.util.ArrayList;
 import java.util.Vector;
 
+import networkTransferObjects.ClientPeer;
 import networkTransferObjects.NetworkMessage;
 import networkTransferObjects.PlayerRegistrationMessage;
 
@@ -33,11 +35,11 @@ public abstract class CoreNetworkThread extends Thread
     
     private EventListenerList listeners = new EventListenerList();
     
-    public Vector<ClientPeer> peers;
+    public ArrayList<ClientPeer> peers;
 	
 	public CoreNetworkThread()
 	{
-		peers = new Vector<ClientPeer>();
+		peers = new ArrayList<ClientPeer>();
 	}
 	
 	public boolean connect()
@@ -266,7 +268,8 @@ public abstract class CoreNetworkThread extends Thread
 		//Terminate communication with existing peers
 		
 		//And now replace them with a new set of peers. 
-		peers = (Vector<ClientPeer>)msg.getDataObject("peerList");
+		
+		peers = msg.getMessageStorage().getParcelableArrayList("peerList");
 		
 		//Now try to connect to the new list of peers
 	}

@@ -1,18 +1,17 @@
 package networkserver.Threads;
 
-import java.awt.AWTEvent;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.nio.BufferOverflowException;
-import java.util.Vector;
+import java.util.ArrayList;
 import javax.swing.event.EventListenerList;
+import networkTransferObjects.ClientPeer;
 import networkTransferObjects.NetworkMessage;
 import networkTransferObjects.PlayerRegistrationMessage;
 import networkserver.EventListeners.*;
 import networkserver.Events.NetworkEvent;
-import networkserver.Peer2Peer.ClientPeer;
 import networkserver.ServerVariables;
 
 /**
@@ -72,7 +71,7 @@ public abstract class ServerDaemonThread extends Thread{
      * peer to peer connections with (or an empty list to disable P2P connections).
      * Guarenteed to only be called after registerPlayer.
      */
-    protected abstract Vector<ClientPeer> getPeerList(int playerId, String playerName);
+    protected abstract ArrayList<ClientPeer> getPeerList(int playerId, String playerName);
 
     /**
      * Will make a request to the server to check out what kind of latency there is between android device and server.
@@ -99,17 +98,17 @@ public abstract class ServerDaemonThread extends Thread{
 
     private void sendPeerList()
     {
-        Vector<ClientPeer> peers = getPeerList(playerID, playerName);
+        ArrayList<ClientPeer> peers = getPeerList(playerID, playerName);
         //Set the network address on peers, in case implementer didnt.
         for(int i = 0; i < peers.size(); i++)
         {
-            int playerId = peers.elementAt(i).playerId;
-            peers.elementAt(i).networkAddress = ServerVariables.playerNetworkAddressList.get(new Integer(playerId));
+            int playerId = peers.get(i).playerId;
+            peers.get(i).networkAddress = ServerVariables.playerNetworkAddressList.get(new Integer(playerId));
         }
         //Now send these to the client
         NetworkMessage message = new NetworkMessage("Peer list transfer");
         message.setMessageType(NetworkMessage.MessageType.PEER_LIST_MESSAGE);
-        message.addDataObject("peerList", peers);
+        message.getMessageStorage().putParcelableArrayList("peerList", peers);
         writeOut(message);
 
     }

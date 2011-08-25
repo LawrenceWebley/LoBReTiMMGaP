@@ -1,8 +1,9 @@
 
 package networkTransferObjects;
 
-import java.io.Serializable;
-import java.util.HashMap;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.Lobretimgap.NetworkClient.NetworkVariables;
 
@@ -14,66 +15,60 @@ import com.Lobretimgap.NetworkClient.NetworkVariables;
  * @date 2011/08/02
  * @author Lawrence Webley
  */
-public class PlayerRegistrationMessage implements Serializable{
-    /**
-	 * Used to ensure conformity across the network connection.
-	 */
-	private static final long serialVersionUID = 6520835168631802917L;
+public class PlayerRegistrationMessage implements Parcelable{
+    
 	public String playerName;
     public int playerID;
     
-    private HashMap<String, String> strings;
-    private HashMap<String, Integer> ints;
-    private HashMap<String, Object> objects;
+    private Bundle messageStorage;
     
     public PlayerRegistrationMessage(int playerId, String playerName)
     {
     	playerID = playerId;
     	this.playerName = playerName;
-    	
-    	strings = new HashMap<String, String>(NetworkVariables.initialNetworkMessageMapSize);
-        ints = new HashMap<String, Integer>(NetworkVariables.initialNetworkMessageMapSize);
-        objects = new HashMap<String, Object>(NetworkVariables.initialNetworkMessageMapSize);
-    }   
-        
-   
-    public void addDataString(String key, String value)
-    {
-        strings.put(key, value);
-    }
+    	setMessageStorage(new Bundle(NetworkVariables.initialNetworkMessageMapSize));
+    } 
 
-    public void addDataInt(String key, int value)
-    {
-        ints.put(key, new Integer(value));
-    }
+	/**
+	 * @param messageStorage the messageStorage to set
+	 */
+	public void setMessageStorage(Bundle messageStorage) {
+		this.messageStorage = messageStorage;
+	}
 
-    /*
-     * Adds an object to this network message. The object must implement serializable
-     */
-    public void addDataObject(String key, Object value) throws IllegalArgumentException
-    {
-        if(value instanceof java.io.Serializable)
-        {
-            objects.put(key, value);
-        }
-        else
-        {
-            throw new IllegalArgumentException("Object is not serializable!");
-        }
-    }
+	/**
+	 * @return the messageStorage
+	 */
+	public Bundle getMessageStorage() {
+		return messageStorage;
+	}
 
-    public String getDataString(String key)
-    {
-        return strings.get(key);
-    }
+	public int describeContents() {
+		return 1;
+	}
 
-    public int getDataInt(String key)
-    {
-        return ints.get(key).intValue();
-    }
 
-    public Object getDataObject(String key)
-    {
-        return objects.get(key);
-    }
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeString(playerName);
+		dest.writeInt(playerID);
+		dest.writeBundle(messageStorage);
+	}
+	
+	public static final Parcelable.Creator<PlayerRegistrationMessage> CREATOR = new Parcelable.Creator<PlayerRegistrationMessage>() {
+
+		public PlayerRegistrationMessage createFromParcel(Parcel source) {
+			return new PlayerRegistrationMessage(source);
+		}
+
+		public PlayerRegistrationMessage[] newArray(int size) {
+			return new PlayerRegistrationMessage[size];
+		}		
+	};
+	
+	private PlayerRegistrationMessage(Parcel source)
+	{
+		playerName = source.readString();
+		playerID = source.readInt();
+		messageStorage = source.readBundle();
+	}
 }
