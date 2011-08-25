@@ -1,8 +1,9 @@
 
 package networkTransferObjects;
 
-import java.io.Serializable;
-import java.util.HashMap;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.Lobretimgap.NetworkClient.NetworkVariables;
 
@@ -12,13 +13,8 @@ import com.Lobretimgap.NetworkClient.NetworkVariables;
  * @date 2011/08/02
  * @author Lawrence Webley
  */
-public class NetworkMessage implements Serializable
-{
-    /**
-	 * Used to ensure that the server object and client object are treated as identical objects.
-	 */
-	private static final long serialVersionUID = 4259455514140197693L;
-
+public class NetworkMessage implements Parcelable
+{ 
 	//Used internally for network message classification.
     public enum MessageType //Comments show where the type can be received
     {
@@ -36,9 +32,7 @@ public class NetworkMessage implements Serializable
 
     }
 
-    private HashMap<String, String> strings;
-    private HashMap<String, Integer> ints;
-    private HashMap<String, Object> objects;
+    private Bundle messageStorage;
     private MessageType messageType;
 
     private String primeMessage;
@@ -46,50 +40,8 @@ public class NetworkMessage implements Serializable
     public NetworkMessage(String message)
     {
         primeMessage = message;
-        strings = new HashMap<String, String>(NetworkVariables.initialNetworkMessageMapSize);
-        ints = new HashMap<String, Integer>(NetworkVariables.initialNetworkMessageMapSize);
-        objects = new HashMap<String, Object>(NetworkVariables.initialNetworkMessageMapSize);
-    }
-   
-    public void addDataString(String key, String value)
-    {
-        strings.put(key, value);
-    }
-
-    public void addDataInt(String key, int value)
-    {
-        ints.put(key, new Integer(value));
-    }
-
-    /*
-     * Adds an object to this network message. The object must implement serializable
-     */
-    public void addDataObject(String key, Object value) throws IllegalArgumentException
-    {
-        if(value instanceof java.io.Serializable)
-        {
-            objects.put(key, value);
-        }
-        else
-        {
-            throw new IllegalArgumentException("Object is not serializable!");
-        }
-    }
-
-    public String getDataString(String key)
-    {
-        return strings.get(key);
-    }
-
-    public int getDataInt(String key)
-    {
-        return ints.get(key).intValue();
-    }
-
-    public Object getDataObject(String key)
-    {
-        return objects.get(key);
-    }
+        setMessageStorage(new Bundle(NetworkVariables.initialNetworkMessageMapSize));       
+    } 
 
     public String getMessage()
     {
@@ -106,4 +58,57 @@ public class NetworkMessage implements Serializable
     {
         return messageType;
     }
+
+	/**
+	 * @param messageStorage the messageStorage to set
+	 */
+	public void setMessageStorage(Bundle messageStorage) {
+		this.messageStorage = messageStorage;
+	}
+
+	/**
+	 * @return the messageStorage
+	 */
+	public Bundle getMessageStorage() {
+		return messageStorage;
+	}
+
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public void writeToParcel(Parcel out, int flags) {
+		// Write our objects values to the parcel
+		
+		//We start with our message type.
+		out.writeInt(messageType.ordinal());
+		//Now our prime message
+		out.writeString(primeMessage);
+		//now our message storage
+		out.writeBundle(messageStorage);
+	}
+		
+	
+	public static final Parcelable.Creator<NetworkMessage> CREATOR 
+		= new Parcelable.Creator<NetworkMessage>() {
+
+			public NetworkMessage createFromParcel(Parcel source) {				
+				return new NetworkMessage(source);
+			}
+
+			public NetworkMessage[] newArray(int size) {
+				return new NetworkMessage[size];
+			}
+		};
+	
+	/* Private constructor, that allows the CREATOR to create an instance 
+	 * of the NetworkMessage using a received parcel 
+	 */
+	private NetworkMessage(Parcel source)
+	{
+		messageType = MessageType.values()[source.readInt()];
+		primeMessage = source.readString();
+		messageStorage = source.readBundle();		
+	}
 }
