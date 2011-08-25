@@ -1,6 +1,7 @@
 package com.Lobretimgap.NetworkClient.Threads;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.net.Inet4Address;
@@ -8,24 +9,31 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.BufferOverflowException;
-import java.util.Vector;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
 
+import org.apache.http.util.ByteArrayBuffer;
+
+import networkTransferObjects.ClientPeer;
 import networkTransferObjects.NetworkMessage;
 import networkTransferObjects.PlayerRegistrationMessage;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.Lobretimgap.NetworkClient.NetworkVariables;
 import com.Lobretimgap.NetworkClient.Utility.EventListenerList;
 import com.Lobretimgap.NetworkClient.EventListeners.*;
 import com.Lobretimgap.NetworkClient.Events.*;
-import com.Lobretimgap.NetworkClient.Peer2Peer.*;
 
 public abstract class CoreNetworkThread extends Thread 
 {
 	private Socket socket;
 	private NetworkWriteThread out;
-	private ObjectInputStream in;
+	private InputStream in;
     private boolean stopOperation = false;
     public boolean isRunning = false;
     
@@ -33,11 +41,11 @@ public abstract class CoreNetworkThread extends Thread
     
     private EventListenerList listeners = new EventListenerList();
     
-    public Vector<ClientPeer> peers;
+    public ArrayList<ClientPeer> peers;
 	
 	public CoreNetworkThread()
 	{
-		peers = new Vector<ClientPeer>();
+		peers = new ArrayList<ClientPeer>();
 	}
 	
 	public boolean connect()
@@ -46,7 +54,7 @@ public abstract class CoreNetworkThread extends Thread
 		{
 			Inet4Address hostAddress = (Inet4Address)InetAddress.getByName(NetworkVariables.hostname);
 			socket = new Socket(hostAddress, NetworkVariables.port);
-			in = new ObjectInputStream(socket.getInputStream());
+			in = socket.getInputStream();
 			out = new NetworkWriteThread(socket);
 			out.start();
 			
@@ -183,8 +191,17 @@ public abstract class CoreNetworkThread extends Thread
         {
             try
             {
-                Object data = in.readObject();                
-                processNetworkMessage(data);
+            	ByteBuffer data = ByteBuffer.allocate(NetworkVariables.InputBufferSize);
+            	ReadableByteChannel wrappedChannel = Channels.newChannel(in);
+            	wrappedChannel.read(data);
+            	
+            	Parcel inParcel = Parcel.obtain();
+            	inParcel.unmarshall(data.array(), 0, data.position());
+            	data.rewind();
+            	
+            	Object message = inParcel.readValue(getContextClassLoader());
+            	
+                processNetworkMessage(message);
             }
             catch(InterruptedIOException e)
             {
@@ -197,10 +214,6 @@ public abstract class CoreNetworkThread extends Thread
                 fireEvent(new NetworkEvent(this, "Connection to client lost!\n" + e),  ConnectionLostListener.class);
                 this.shutdownThread();                
                 break;
-            }
-            catch(ClassNotFoundException e)
-            {
-                System.err.println("Unrecognised class object received from client - ignoring");
             } 
         }
     }
@@ -260,6 +273,10 @@ public abstract class CoreNetworkThread extends Thread
 
             }
         }
+		else
+		{
+			Log.e(NetworkVariables.TAG, "Unrecognised object received over network connection!");
+		}
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -268,8 +285,9 @@ public abstract class CoreNetworkThread extends Thread
 		//Terminate communication with existing peers
 		
 		//And now replace them with a new set of peers. 
-		peers = (Vector<ClientPeer>)msg.getDataObject("peerList");
 		Log.d(NetworkVariables.TAG, "New Peer list received.");
+		
+		peers = msg.getMessageStorage().getParcelableArrayList("peerList");
 		
 		//Now try to connect to the new list of peers
 	}
@@ -277,7 +295,7 @@ public abstract class CoreNetworkThread extends Thread
 	/*
      * Writes a given object to the outputstream
      */
-    private void writeOut(Object object) throws BufferOverflowException
+    private <T extends Parcelable> void writeOut(T object) throws BufferOverflowException
     {
         //Later perhaps we can more gracefully deal with this. Perhaps add wait
         //a little while and then try again?

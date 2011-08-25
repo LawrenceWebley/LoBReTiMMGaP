@@ -1,7 +1,10 @@
 package networkserver.Threads;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import networkserver.ServerCustomisation;
@@ -16,7 +19,7 @@ import networkserver.ServerCustomisation;
 public class ServerDaemonWriteoutThread extends Thread
 {
     private Socket socket;
-    private ObjectOutputStream oos;
+    private OutputStream os;
     private ArrayBlockingQueue<Object> messageQueue;
     private boolean stopOperation = false;
 
@@ -25,13 +28,13 @@ public class ServerDaemonWriteoutThread extends Thread
     public ServerDaemonWriteoutThread(Socket writeOutSocket) throws IOException
     {
         socket = writeOutSocket;
-        oos = new ObjectOutputStream(socket.getOutputStream());
+        os = socket.getOutputStream();
         messageQueue = new ArrayBlockingQueue<Object>(ServerCustomisation.threadWriteOutBufferSize);
     }
 
     //Tries to add the message to the queue of messages waiting to be sent to
     //the client. If the message queue is full, it will return false, otherwise true.
-    public boolean writeMessage(Object message)
+    public <T extends Parcelable> boolean writeMessage(T message)
     {
         return messageQueue.offer(message);
     }
@@ -44,8 +47,11 @@ public class ServerDaemonWriteoutThread extends Thread
             try
             {
                 Object message = messageQueue.take();
-                oos.writeObject(message);
-                oos.flush();
+                final Parcel p1 = Parcel.obtain();
+                p1.writeParcelable((Parcelable) message, 0);
+                final byte [] bytes = p1.marshall();
+                os.write(bytes);
+                os.flush();
             }
             catch(IOException e)
             {
