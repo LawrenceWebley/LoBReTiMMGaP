@@ -7,6 +7,7 @@ package networkserver;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * @date 2011/08/11
@@ -15,5 +16,7 @@ import java.util.ArrayList;
 public class ServerVariables
 {
     //Used to store a mapping from player ids to their respective network addresses.
-    public static ArrayList<InetAddress> playerNetworkAddressList = new ArrayList<InetAddress>();
+    
+    public static ArrayList<Integer> playerList = new ArrayList<Integer>();
+    public static HashMap<Integer, InetAddress> playerAddressMap = new HashMap<Integer, InetAddress>();
 }

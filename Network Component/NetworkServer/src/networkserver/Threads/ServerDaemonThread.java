@@ -1,6 +1,5 @@
 package networkserver.Threads;
 
-import java.awt.AWTEvent;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;

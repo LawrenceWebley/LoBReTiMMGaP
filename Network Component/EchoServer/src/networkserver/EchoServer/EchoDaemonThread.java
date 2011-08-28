@@ -30,11 +30,14 @@ public class EchoDaemonThread extends ServerDaemonThread{
         signUpForListeners();
     }
     
+    
+    
     private void signUpForListeners()
     {       
         this.addNetworkListener(UpdateReceivedListener.class, new UpdateReceivedListener() {
             public void EventOccured(NetworkEvent e) {
                 
+                System.out.println("Gameupdate received: "+((NetworkMessage)e.getMessage()).getMessage());
                 int senderID = ((ServerDaemonThread)e.getSource()).playerID;
                 for(int i = 0; i < playerThreads.size();i++)
                 {                   
@@ -52,19 +55,21 @@ public class EchoDaemonThread extends ServerDaemonThread{
             }
         });
     }
+    
+    public void shutdownThread()
+    {
+        playerThreads.remove(this);
+        super.shutdownThread();
+    }
 
     @Override
     protected void registerPlayer(PlayerRegistrationMessage initialMessage) {
-        if(ServerVariables.playerNetworkAddressList.size() > 1)
-        {
-            NetworkMessage msg = new NetworkMessage("Second player available for battle");
-            this.sendGameUpdate(msg);
-        }
+       
     }
 
     @Override
     protected NetworkMessage getInitialState() {
-        return new NetworkMessage("Initial State");
+        return new NetworkMessage("" + ServerVariables.playerList.size());
     }
 
     @Override

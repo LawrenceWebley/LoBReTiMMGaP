@@ -24,6 +24,8 @@ public abstract class ServerDaemonThread extends Thread{
     private ServerDaemonWriteoutThread out;
     private ObjectInputStream in;
     private boolean stopOperation = false;
+    
+    private static int playerConnectionCount = 0;
 
     public int playerID;
     public String playerName;
@@ -103,7 +105,7 @@ public abstract class ServerDaemonThread extends Thread{
         for(int i = 0; i < peers.size(); i++)
         {
             int playerId = peers.elementAt(i).playerId;
-            peers.elementAt(i).networkAddress = ServerVariables.playerNetworkAddressList.get(new Integer(playerId));
+            peers.elementAt(i).networkAddress = ServerVariables.playerAddressMap.get(new Integer(playerId));
         }
         //Now send these to the client
         NetworkMessage message = new NetworkMessage("Peer list transfer");
@@ -246,8 +248,14 @@ public abstract class ServerDaemonThread extends Thread{
         else if(message instanceof PlayerRegistrationMessage)
         {
             PlayerRegistrationMessage regMessage = (PlayerRegistrationMessage)message;
-            playerID = ServerVariables.playerNetworkAddressList.size();
-            ServerVariables.playerNetworkAddressList.add(socket.getInetAddress());            
+            
+            playerID = playerConnectionCount;
+            playerConnectionCount++;
+            
+            ServerVariables.playerList.add(playerID);
+            
+            ServerVariables.playerAddressMap.put(new Integer(playerID), socket.getInetAddress());
+            
             playerName = regMessage.playerName;
             PlayerRegistrationMessage reply = new PlayerRegistrationMessage(playerID);
             writeOut(reply);
@@ -271,9 +279,24 @@ public abstract class ServerDaemonThread extends Thread{
     {
         //Later perhaps we can more gracefully deal with this. Perhaps add wait
         //a little while and then try again?
-        if(!out.writeMessage(object))
+        try
         {
-            throw new BufferOverflowException();
+            if(!out.writeMessage(object))
+            {
+                throw new BufferOverflowException();
+            }
+        }
+        catch(NullPointerException e)
+        {
+            System.err.println("Encountered null pointer occured...");
+            if(object == null)
+            {
+                System.err.println("Object to be sent was null");
+            }
+            else if(out == null)
+            {
+                System.err.println("Writing thread was null");
+            }
         }
     }
 
@@ -285,6 +308,7 @@ public abstract class ServerDaemonThread extends Thread{
             stopOperation = true;
             this.interrupt();
             socket.close();
+            ServerVariables.playerList.remove(new Integer(playerID));
         }
         catch(IOException e)
         {
