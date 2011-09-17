@@ -292,9 +292,11 @@ public abstract class ServerDaemonThread extends Thread{
 
     private void processNetworkMessage(NetworkMessage message)
     {
+        //System.out.println("Time difference between devices was: "+ (System.currentTimeMillis() - message.getTimeStamp()));
         if(message.getTimeStamp() == 0)
         {
             System.err.println("Error: Timestamp on message was 0!");
+
         }
         if(message instanceof PlayerRegistrationMessage)
         {            
