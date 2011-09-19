@@ -531,12 +531,15 @@ public abstract class CoreNetworkThread extends Thread
 	            		long sentTime = Long.parseLong(msg.getMessage());
 	            		long currentTime = gameClock.currentTimeMillis();
 	            		long latency = (currentTime - sentTime)/2;
+	            		Log.i(NetworkVariables.TAG, "Client-server latency is : "+latency);
 	            		
 	            		long serverTime = msg.getTimeStamp();
 	            		long clockDelta = (currentTime - latency) - serverTime ; //difference between local time and server time
 	            		Log.i(NetworkVariables.TAG, "Client-server time delta is: "+clockDelta);
-	            		gameClock.setTimeDelta(clockDelta);
-	            		timeSyncReceived++;
+	            		gameClock.setTimeDelta(gameClock.getTimeDelta() + clockDelta);	            		
+	            		
+	            		//timeSyncReceived++;
+	            		timeSyncInProgress = false;
 	            		//Next packets will be sent by a scheduled timer, to ensure a 2 second delay between messages
 	            		
 	            	}

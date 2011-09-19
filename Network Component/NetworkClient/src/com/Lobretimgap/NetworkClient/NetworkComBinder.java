@@ -32,6 +32,11 @@ public class NetworkComBinder extends Binder {
 		});
 	}
 	
+	public void synchroniseTime()
+	{
+		networkThread.requestNetworkTimeSync();
+	}
+	
 	/**
 	 * Uses the connection information in NetworkVariables to try 
 	 * and establish a connection with the server.	

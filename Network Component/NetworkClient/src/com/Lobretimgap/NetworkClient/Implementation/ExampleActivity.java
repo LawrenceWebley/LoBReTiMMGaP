@@ -116,6 +116,8 @@ public class ExampleActivity extends Activity {
 						lowest = latency;
 					total += latency;
 					
+					binder.synchroniseTime();
+					
 					if(pingsPerformed == 20)
 					{
 						tv.append("Max ="+highest+", min = "+lowest+", average = "+(total/20));
