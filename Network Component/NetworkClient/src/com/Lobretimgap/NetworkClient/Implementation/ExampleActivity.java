@@ -114,9 +114,7 @@ public class ExampleActivity extends Activity {
 						highest = latency;					
 					if(latency < lowest)
 						lowest = latency;
-					total += latency;
-					
-					binder.synchroniseTime();
+					total += latency;	
 					
 					if(pingsPerformed == 20)
 					{

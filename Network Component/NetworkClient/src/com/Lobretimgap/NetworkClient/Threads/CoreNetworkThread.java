@@ -548,8 +548,7 @@ public abstract class CoreNetworkThread extends Thread
 	            		Log.i(NetworkVariables.TAG, "Client-server time delta is: "+clockDelta);
 	            		gameClock.setTimeDelta(gameClock.getTimeDelta() + clockDelta);	            		
 	            		
-	            		//timeSyncReceived++;
-	            		timeSyncInProgress = false;
+	            		timeSyncReceived++;	            		
 	            		//Next packets will be sent by a scheduled timer, to ensure a 2 second delay between messages
 	            		
 	            	}
